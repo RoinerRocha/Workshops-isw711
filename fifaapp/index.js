@@ -14,7 +14,7 @@ app.use(cors({
   methods: "*"
 }));
 
-
+//cambio
 app.get('/tipocambio', function (req, res) {
   res.send(`{
     "TipoCompraDolares" : "608",
