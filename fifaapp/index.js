@@ -4,6 +4,8 @@ const mongoose = require("mongoose");
 const db = mongoose.connect("mongodb://127.0.0.1:27017/tasks-api");
 const bodyParser = require("body-parser");
 const Task = require("./tasksModel");
+const TeamModel = require("./models/team");
+
 
 const app = express();
 app.use(bodyParser.json());
@@ -14,7 +16,7 @@ app.use(cors({
   methods: "*"
 }));
 
-//cambio
+
 app.get('/tipocambio', function (req, res) {
   res.send(`{
     "TipoCompraDolares" : "608",
@@ -91,6 +93,40 @@ app.patch('/tasks', (req, res) => {
   }
 
 });
+
+app.post('/team', function (req, res) {
+
+  const team = new TeamModel();
+
+
+  team.name = req.body.name;
+  team.description = req.body.description;;
+  if (team.name && team.description) {
+    team.save(function (err) {
+      if (err) {
+        res.status(422);
+        console.log('error while saving the team', err);
+        res.json({
+          error: 'There was an error saving the team'
+        });
+      }
+      res.status(201);//CREATED
+      res.header({
+        'location': `http://localhost:3000/team/?id=${team.id}`
+      });
+      res.json(team);
+    });
+  } else {
+    res.status(422);
+    console.log('error while saving the team')
+    res.json({
+      error: 'No valid data provided for team'
+    });
+  }
+});
+
+
+app.delete("/_id")
 
 
 app.listen(3000, () => console.log(`Example app listening on port 3000!`))
