@@ -1,7 +1,9 @@
 const express = require('express');
 const cors = require("cors");
 const mongoose = require("mongoose");
-const db = mongoose.connect("mongodb://127.0.0.1:27017/tasks-api");
+const db   = mongoose.connect("mongodb://127.0.0.1:27017/fifapp");
+const dbConnect = require('./mongodb');
+const mongodb = require('mongodb');
 const bodyParser = require("body-parser");
 const Task = require("./tasksModel");
 const TeamModel = require("./models/team");
@@ -126,7 +128,12 @@ app.post('/team', function (req, res) {
 });
 
 
-app.delete("/_id")
+app.delete("/:id", async (req,resp)=>{
+  console.log(req.params.id);
+  const data = await dbConnect();
+  const result = await data.deleteOne({_id: new mongodb.ObjectId(req.params.id)})
+  resp.send(result)
+})
 
 
 app.listen(3000, () => console.log(`Example app listening on port 3000!`))
