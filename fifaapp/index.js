@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require("cors");
 const mongoose = require("mongoose");
-const db   = mongoose.connect("mongodb://127.0.0.1:27017/fifapp");
+const db = mongoose.connect("mongodb://127.0.0.1:27017/fifapp");
 const dbConnect = require('./mongodb');
 const mongodb = require('mongodb');
 const bodyParser = require("body-parser");
@@ -11,6 +11,7 @@ const TeamModel = require("./models/team");
 
 const app = express();
 app.use(bodyParser.json());
+app.use(express.json())
 
 // check for cors
 app.use(cors({
@@ -127,12 +128,27 @@ app.post('/team', function (req, res) {
   }
 });
 
+app.get('/', async(res,resp)=>{
+  let data = await dbConnect();
+  data = await data.find().toArray();
+  resp.send(data);
+})
 
-app.delete("/:id", async (req,resp)=>{
+app.delete("/:id", async (req, resp) => {
   console.log(req.params.id);
   const data = await dbConnect();
-  const result = await data.deleteOne({_id: new mongodb.ObjectId(req.params.id)})
+  const result = await data.deleteOne({ _id: new mongodb.ObjectId(req.params.id) })
   resp.send(result)
+})
+
+app.put("/:name", async (req, resp) => {
+  console.log(req.body);
+  const data = await dbConnect();
+  let result = data.updateOne(
+    { name: req.params.name },
+    { $set: req.body  }
+  )
+  resp.send({ status: "updated" })
 })
 
 
