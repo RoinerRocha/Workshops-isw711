@@ -5,4 +5,7 @@ const team = new Schema({
   name: { type: String },
   description: { type: String }
 });
-module.exports = mongoose.model('teams', team);
+module.exports = {
+  "model": mongoose.model('teams', team),
+  "schema": team
+}
