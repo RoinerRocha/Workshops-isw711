@@ -7,7 +7,7 @@ const mongodb = require('mongodb');
 const bodyParser = require("body-parser");
 const Task = require("./tasksModel");
 const TeamModel = require("./models/team");
-const players = require('./models/players');
+
 
 
 const app = express();
@@ -30,36 +30,6 @@ app.get('/tipocambio', function (req, res) {
   }`);
 });
 
-app.post('/players', function(req, res){
-  const players = new players();
-
-  players.name = req.body.name;
-  players.lasName = req.body.lasName;
-  players.position = req.body.position;
-  players.number = req.body.number;;
-  if (players.name && players.lasName) {
-    players.save(function (err) {
-      if (err) {
-        res.status(422);
-        console.log('error while saving the team', err);
-        res.json({
-          error: 'There was an error saving the team'
-        });
-      }
-      res.status(201);//CREATED
-      res.header({
-        'location': `http://localhost:3000/team/?id=${players.id}`
-      });
-      res.json(players);
-    });
-  } else {
-    res.status(422);
-    console.log('error while saving the team')
-    res.json({
-      error: 'No valid data provided for team'
-    });
-  }
-});
 
 app.post('/team', function (req, res) {
 
