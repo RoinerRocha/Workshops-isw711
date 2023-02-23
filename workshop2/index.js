@@ -12,6 +12,9 @@ const TeamModel = require("./models/team");
 const Player = require("./models/player");
 
 
+const {
+  base64decode
+} = require('nodejs-base64');
 
 const app = express();
 app.use(bodyParser.json());
@@ -22,6 +25,28 @@ app.use(cors({
   domains: '*',
   methods: "*"
 }));
+
+app.use(function (req, res, next) {
+  if (req.headers["authorization"]) {
+    console.log(req.headers["authorization"]);
+    const authBase64 = req.headers['authorization'].split(' ');
+    console.log('authBase64:', authBase64);
+    const userPass = base64decode(authBase64[1]);
+    console.log('userPass:', userPass);
+    const user = userPass.split(':')[0];
+    const password = userPass.split(':')[1];
+
+    if (user === 'admin' && password == '1234') {
+      // saveSession('admin');
+      next();
+      return;
+    }
+  }
+  res.status(401);
+  res.send({
+    error: "Unauthorized"
+  });
+});
 
 
 app.get('/tipocambio', function (req, res) {
@@ -88,7 +113,7 @@ app.put("/:name", async (req, resp) => {
   resp.send({ status: "updated" })
 })
 
-app.post('/player', function (req, res) {
+app.post('/players', function (req, res) {
   const player = new Player.model();
   player.first_name = req.body.first_name;
   player.last_name = req.body.last_name;
@@ -102,50 +127,54 @@ app.post('/player', function (req, res) {
     if(error) {
 
     }
-    if (teamFound) {
-      player.team = teamFound;
-    }
-  });
-
-
-  if (player.first_name && player.last_name) {
-    player.save(function (err) {
-      if (err) {
+      if (teamFound) {
+        player.team = teamFound;
+      }
+      if (player.first_name && player.last_name) {
+        player.save(function (err) {
+          if (err) {
+            res.status(422);
+            console.log('error while saving the player', err);
+            res.json({
+              error: 'There was an error saving the player'
+            });
+          }
+          res.status(201);//CREATED
+          res.header({
+            'location': `http://localhost:3000/player/?id=${player.id}`
+          });
+          res.json(player);
+        });
+      } else {
         res.status(422);
-        console.log('error while saving the player', err);
+        console.log('error while saving the player')
         res.json({
-          error: 'There was an error saving the player'
+          error: 'No valid data provided for player'
         });
       }
-      res.status(201);//CREATED
-      res.header({
-        'location': `http://localhost:3000/player/?id=${player.id}`
-      });
-      res.json(player);
-    });
-  } else {
-    res.status(422);
-    console.log('error while saving the player')
-    res.json({
-      error: 'No valid data provided for player'
-    });
-  }
-});
+  });
 
-app.delete("/:id",async(req, resp)=>{
+});
+app.get('/players', async(res,resp)=>{
+  let data = await dbConnect2();
+  data = await data.find().toArray();
+  resp.send(data);
+})
+
+app.delete("/players/:id",async(req, resp)=>{
   console.log(req.params.id);
   const data = await dbConnect2();
   const result = await data.deleteOne({_id : new  mongodbp.ObjectId(req.params.id)})
-    resp.send("result")
+    resp.send(result)
 })
-app.put("/:name", async (req, resp) => {
+app.put("/players/:first_name", async (req, resp) => {
   console.log(req.body);
   const data = await dbConnect2();
   let result = data.updateOne(
     { name: req.params.name },
     { $set: req.body  }
   )
-  resp.send({ status: "updated" })
+  resp.send({ status: "uptaded" })
 })
 
 
